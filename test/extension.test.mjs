@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createModels } from "@earendil-works/pi-ai";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -138,4 +139,42 @@ test("refresh without any key fails with a login hint", async () => {
 	} finally {
 		if (previous !== undefined) process.env.ALIBABA_API_KEY = previous;
 	}
+});
+
+// The SDK rebuilds the discovery credential from resolve()'s result, keeping only
+// key and env — auth.baseUrl is dropped. A Beijing credential must therefore reach
+// fetchModels through env, or discovery silently goes to Singapore and gets 401.
+test("a stored Beijing credential refreshes against Beijing through the real SDK", async () => {
+	const fetchImpl = fakeFetch();
+	const pi = fakePi();
+	register(pi, { fetchImpl, agentDir: mkdtempSync(join(tmpdir(), "alp-agent-")) });
+
+	const stored = { type: "api_key", key: "sk-cn", env: { [REGION_ENV]: "cn" } };
+	const models = createModels({
+		credentials: {
+			read: async () => stored,
+			list: async () => [{ providerId: PROVIDER, type: "api_key" }],
+			modify: async (_id, fn) => fn(stored),
+			delete: async () => {},
+		},
+		modelsStore: {
+			read: async () => undefined,
+			write: async () => {},
+			delete: async () => {},
+		},
+		authContext: { env: async () => undefined, fileExists: async () => false },
+	});
+	models.setProvider(pi.providers[0]);
+
+	const regionEnv = process.env[REGION_ENV];
+	delete process.env[REGION_ENV];
+	try {
+		const result = await models.refresh({ allowNetwork: true, providers: [PROVIDER] });
+		assert.equal(result.errors.size, 0, [...result.errors.values()].join("; "));
+	} finally {
+		if (regionEnv !== undefined) process.env[REGION_ENV] = regionEnv;
+	}
+
+	assert.ok(fetchImpl.calls.includes(`${CN_URL}/models`), fetchImpl.calls.join(", "));
+	assert.equal(models.getModel(PROVIDER, "qwen4-max-preview").baseUrl, CN_URL);
 });

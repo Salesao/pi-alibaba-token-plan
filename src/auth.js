@@ -58,6 +58,9 @@ export function createApiKeyAuth({ fetchImpl = fetch, timeoutMs = REQUEST_TIMEOU
 			if (!resolved) return undefined;
 			return {
 				auth: { apiKey: resolved.key, baseUrl: baseUrlFor(resolved.region) },
+				// The SDK rebuilds the discovery credential from key + env only, so the
+				// region has to travel here as well or catalog refresh loses it.
+				env: { [REGION_ENV]: resolved.region },
 				source: resolved.source,
 			};
 		},

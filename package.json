@@ -1,0 +1,47 @@
+{
+  "name": "pi-alibaba-token-plan",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Alibaba Model Studio Token Plan provider for Pi: /login with region selection and a live model catalog",
+  "license": "MIT",
+  "author": "Salesao",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Salesao/pi-alibaba-token-plan.git"
+  },
+  "homepage": "https://github.com/Salesao/pi-alibaba-token-plan#readme",
+  "bugs": {
+    "url": "https://github.com/Salesao/pi-alibaba-token-plan/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "files": [
+    "extensions",
+    "src",
+    "LICENSE",
+    "README*.md"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/index.js"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "keywords": [
+    "pi-package",
+    "pi",
+    "pi-coding-agent",
+    "extension",
+    "provider",
+    "alibaba",
+    "qwen",
+    "token-plan"
+  ]
+}

@@ -9,7 +9,9 @@
  * Login: /login alibaba-openai → region → key. Keys are region-specific.
  */
 import { createProvider } from "@earendil-works/pi-ai";
-import { openAICompletionsApi } from "@earendil-works/pi-ai/api/openai-completions.lazy";
+// The api factories live on the compat entrypoint, which is also the specifier Pi
+// maps for extensions; a deeper subpath resolves only when node_modules exists.
+import { openAICompletionsApi } from "@earendil-works/pi-ai/compat";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { API_KEY_ENV, createApiKeyAuth } from "../src/auth.js";

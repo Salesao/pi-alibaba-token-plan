@@ -9,8 +9,23 @@
 ## Установка
 
 ```bash
+pi install npm:pi-alibaba-token-plan
+# или прямо из репозитория
 pi install git:github.com/Salesao/pi-alibaba-token-plan
 ```
+
+## Откуда берётся ключ
+
+Подписка Token Plan живёт в консоли Alibaba Cloud Model Studio —
+[modelstudio.console.alibabacloud.com](https://modelstudio.console.alibabacloud.com/).
+Откройте страницу подписки своего региона и скопируйте её специальный API-ключ:
+
+| Регион | Страница консоли |
+|---|---|
+| Сингапур (международный) | [Token Plan Personal](https://modelstudio.console.alibabacloud.com/ap-southeast-1/subscription/token-plan/personal) |
+| Китай (Пекин) | [Token Plan](https://bailian.console.aliyun.com/cn-beijing/subscription/token-plan) |
+
+В той же консоли видно, какие модели доступны вашей подписке. Обычный pay-as-you-go ключ DashScope здесь не работает.
 
 ## Вход
 

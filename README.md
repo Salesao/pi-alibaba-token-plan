@@ -9,8 +9,23 @@ region-specific, so the region is stored with the key.
 ## Install
 
 ```bash
+pi install npm:pi-alibaba-token-plan
+# or straight from the repository
 pi install git:github.com/Salesao/pi-alibaba-token-plan
 ```
+
+## Where the key comes from
+
+The Token Plan lives in the Alibaba Cloud Model Studio console —
+[modelstudio.console.alibabacloud.com](https://modelstudio.console.alibabacloud.com/).
+Open the subscription page for your region and copy its dedicated API key:
+
+| Region | Console page |
+|---|---|
+| Singapore (International) | [Token Plan Personal](https://modelstudio.console.alibabacloud.com/ap-southeast-1/subscription/token-plan/personal) |
+| China (Beijing) | [Token Plan](https://bailian.console.aliyun.com/cn-beijing/subscription/token-plan) |
+
+The same console lists the models your plan serves. A pay-as-you-go DashScope key does not work here.
 
 ## Sign in
 

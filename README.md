@@ -48,7 +48,10 @@ answer. It is a **preview**: Alibaba retires it after 2026-11-25.
   pi.dev catalogs of the Qwen Token Plan providers, then from a small verified table inside this
   package for models those catalogs lag on.
 - Pi stores the resulting catalog in `~/.pi/agent/models-store.json`, which is what offline starts and
-  `pi -p` use. The list is refreshed at most every 15 minutes; `pi update --models` forces it.
+  `pi -p` use. The list is refreshed on interactive startup, at most once every 15 minutes.
+- **First run:** start `pi` interactively once. Until that first catalog fetch there is nothing stored,
+  so `pi --list-models` and `pi -p` show no models for this provider. (`pi update --models` only
+  refreshes Pi's built-in catalogs, not provider extensions.)
 - A failed or empty answer never wipes the catalog you already have.
 
 Only chat models are listed. The plan's image, video and audio models are filtered out.

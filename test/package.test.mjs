@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -8,6 +8,9 @@ const HOST_PACKAGES = ["@earendil-works/pi-ai", "@earendil-works/pi-coding-agent
 test("manifest declares the extension entry point", () => {
 	assert.ok(Array.isArray(pkg.pi?.extensions));
 	assert.ok(pkg.pi.extensions.length > 0);
+	for (const entry of pkg.pi.extensions) {
+		assert.ok(existsSync(new URL(`../${entry}`, import.meta.url)), entry);
+	}
 });
 
 test("manifest is discoverable in the package gallery", () => {

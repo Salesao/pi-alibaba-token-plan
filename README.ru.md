@@ -52,9 +52,11 @@ export ALIBABA_TOKEN_PLAN_REGION=sg   # sg (по умолчанию) или cn
 pi --model alibaba-openai/qwen4-max-preview:xhigh
 ```
 
-Уровни thinking у моделей Qwen — `low`, `medium` и `xhigh`: просите `:xhigh`, а не `:high`.
-У `qwen4-max-preview` контекст 1M и бюджет вывода 393 216 токенов, общий для thinking и ответа.
-Это **превью**: Alibaba отключает модель после 25.11.2026.
+Уровни thinking у `qwen4-max` — `low`, `high` и `xhigh`: только значения, которые документирует
+Alibaba; выключить thinking нельзя. Контекст модели — 1M, бюджет вывода — 262 144 токена.
+У `qwen4-max-preview` контекст 1M и бюджет вывода 393 216 токенов, общий для thinking и ответа;
+уровни — `low`, `medium` и `xhigh`: просите `:xhigh`, а не `:high`. Это **превью**: Alibaba
+отключает модель после 25.11.2026.
 
 ## Как устроен список моделей
 

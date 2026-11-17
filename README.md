@@ -52,9 +52,11 @@ export ALIBABA_TOKEN_PLAN_REGION=sg   # sg (default) or cn
 pi --model alibaba-openai/qwen4-max-preview:xhigh
 ```
 
-Thinking levels for the Qwen models are `low`, `medium` and `xhigh` — ask for `:xhigh`, not `:high`.
+Thinking levels for `qwen4-max` are `low`, `high` and `xhigh` — only the values Alibaba documents,
+and thinking cannot be turned off. The model has a 1M context and a 262,144-token output budget.
 `qwen4-max-preview` has a 1M context and a 393,216-token output budget shared by thinking and the
-answer. It is a **preview**: Alibaba retires it after 2026-11-25.
+answer; its levels are `low`, `medium` and `xhigh` — ask for `:xhigh`, not `:high`. It is a
+**preview**: Alibaba retires it after 2026-11-25.
 
 ## How the model list works
 

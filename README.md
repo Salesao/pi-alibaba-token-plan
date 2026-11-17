@@ -66,9 +66,11 @@ answer; its levels are `low`, `medium` and `xhigh` — ask for `:xhigh`, not `:h
   package for models those catalogs lag on.
 - Pi stores the resulting catalog in `~/.pi/agent/models-store.json`, which is what offline starts and
   `pi -p` use. The list is refreshed on interactive startup, at most once every 15 minutes.
-- **First run:** start `pi` interactively once. Until that first catalog fetch there is nothing stored,
-  so `pi --list-models` and `pi -p` show no models for this provider. (`pi update --models` only
-  refreshes Pi's built-in catalogs, not provider extensions.)
+- A login always refetches it immediately, inside that window or not: `/login` (interactive) and
+  `pi auth login` both run a network refresh right after the credential is saved.
+- **First run:** the login itself fetches the catalog. Until that fetch completes there is nothing
+  stored, so `pi --list-models` and `pi -p` show no models for this provider. (`pi update --models`
+  only refreshes Pi's built-in catalogs, not provider extensions.)
 - A failed or empty answer never wipes the catalog you already have.
 
 Only chat models are listed. The plan's image, video and audio models are filtered out.

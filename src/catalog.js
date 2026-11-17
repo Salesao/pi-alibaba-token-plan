@@ -29,6 +29,18 @@ const NON_CHAT_ID = /(^wan|image|audio|tts|asr|realtime|video|embed|rerank|ocr)/
 // Models the plan serves but the catalogs do not describe yet. Specs come from
 // https://docs.modelstudio.console.alibabacloud.com/en/model-studio/<model-id>.
 export const VERIFIED_OVERRIDES = {
+	// Alias: qwen4.0-max. Thinking on by default (high).
+	"qwen4-max": {
+		name: "Qwen4 Max",
+		reasoning: true,
+		input: ["text", "image"],
+		contextWindow: 1_000_000,
+		// Thinking output cap.
+		maxTokens: 262_144,
+		// Docs: reasoning_effort accepts low|high|xhigh only; thinking cannot be turned off.
+		thinkingLevelMap: { off: null, minimal: null, low: "low", medium: null, high: "high", xhigh: "xhigh", max: null },
+		compat: { thinkingFormat: "qwen", supportsReasoningEffort: true, supportsStrictMode: true },
+	},
 	// Preview until 2026-11-25. Alias: qwen4.0-max-preview. Thinking on by default (xhigh).
 	"qwen4-max-preview": {
 		name: "Qwen4 Max Preview",

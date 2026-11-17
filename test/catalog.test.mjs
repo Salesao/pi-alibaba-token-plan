@@ -69,6 +69,28 @@ test("buildModels applies the verified qwen4 preview limits when no catalog know
 	assert.equal(model.compat.supportsStrictMode, true);
 });
 
+test("buildModels applies the verified qwen4 max limits when no catalog knows it", () => {
+	const [model] = build({ liveIds: ["qwen4-max"] });
+
+	assert.equal(model.name, "Qwen4 Max");
+	assert.equal(model.contextWindow, 1000000);
+	assert.equal(model.maxTokens, 262144);
+	assert.equal(model.reasoning, true);
+	assert.deepEqual(model.input, ["text", "image"]);
+	assert.deepEqual(model.thinkingLevelMap, {
+		off: null,
+		minimal: null,
+		low: "low",
+		medium: null,
+		high: "high",
+		xhigh: "xhigh",
+		max: null,
+	});
+	assert.equal(model.compat.thinkingFormat, "qwen");
+	assert.equal(model.compat.supportsReasoningEffort, true);
+	assert.equal(model.compat.supportsStrictMode, true);
+});
+
 test("buildModels stamps provider, api, type and the region endpoint on every model", () => {
 	const models = build({
 		liveIds: ["qwen4-max-preview", "glm-5.3"],

@@ -1,6 +1,6 @@
 {
   "name": "pi-alibaba-token-plan",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "Alibaba Model Studio Token Plan provider for Pi: /login with region selection and a live model catalog",
   "license": "MIT",

@@ -9,7 +9,7 @@ const REQUEST_TIMEOUT_MS = 6000;
  * region is chosen at login and stored with the credential; request auth then
  * carries the matching baseUrl.
  */
-export function createApiKeyAuth({ fetchImpl = fetch, timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
+export function createApiKeyAuth({ fetchImpl = fetch, timeoutMs = REQUEST_TIMEOUT_MS, onLogin } = {}) {
 	async function readKeyAndRegion({ ctx, credential }) {
 		const storedKey = credential?.type === "api_key" ? credential.key : undefined;
 		const key = storedKey ?? (await ctx.env(API_KEY_ENV));
@@ -45,6 +45,9 @@ export function createApiKeyAuth({ fetchImpl = fetch, timeoutMs = REQUEST_TIMEOU
 			}
 			if (!response.ok) throw new Error(`Token Plan key check failed with HTTP ${response.status}`);
 
+			// A saved credential invalidates the catalog cache, so Pi's post-login
+			// refresh must not be downgraded to a restore-only pass.
+			onLogin?.();
 			return { type: "api_key", key, env: { [REGION_ENV]: region } };
 		},
 

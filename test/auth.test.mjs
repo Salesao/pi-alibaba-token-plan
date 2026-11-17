@@ -107,6 +107,26 @@ test("login propagates cancellation at the key step", async () => {
 	assert.equal(fetchImpl.calls.length, 0);
 });
 
+test("login reports a saved credential so the catalog can refresh right away", async () => {
+	const interaction = fakeInteraction({ select: "sg", secret: "sk-test" });
+	let logins = 0;
+
+	await createApiKeyAuth({ fetchImpl: fakeFetch(ok), onLogin: () => (logins += 1) }).login(interaction);
+
+	assert.equal(logins, 1);
+});
+
+test("a rejected key reports no login", async () => {
+	const interaction = fakeInteraction({ select: "sg", secret: "sk-cn-key" });
+	let logins = 0;
+
+	await assert.rejects(
+		() => createApiKeyAuth({ fetchImpl: fakeFetch({ ok: false, status: 401 }), onLogin: () => (logins += 1) }).login(interaction),
+		/region/i,
+	);
+	assert.equal(logins, 0);
+});
+
 test("resolve uses the stored key and its region", async () => {
 	const auth = createApiKeyAuth({ fetchImpl: fakeFetch(ok) });
 	const result = await auth.resolve({

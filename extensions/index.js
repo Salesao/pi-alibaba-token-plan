@@ -36,21 +36,27 @@ export default function register(pi, { fetchImpl = fetch, agentDir = join(homedi
 		});
 	}
 
+	let refreshAfterLogin = false;
+
 	const provider = createProvider({
 		id: PROVIDER_ID,
 		name: "Alibaba Token Plan",
 		baseUrl: baseUrlFor(DEFAULT_REGION),
-		auth: { apiKey: createApiKeyAuth({ fetchImpl }) },
+		auth: { apiKey: createApiKeyAuth({ fetchImpl, onLogin: () => (refreshAfterLogin = true) }) },
 		models: [],
 		fetchModels,
 		api: openAICompletionsApi(),
 	});
 
 	// Freshness policy: within the interval, ask pi for a restore-only pass so a
-	// startup does not refetch. `force` (pi update --models) always goes to the network.
+	// startup does not refetch. A saved login and `force` (pi update --models)
+	// always go to the network, like the built-in providers after an OAuth login.
 	const refresh = provider.refreshModels;
-	provider.refreshModels = (context) =>
-		refresh(isFresh(context.stored) && !context.force ? { ...context, allowNetwork: false } : context);
+	provider.refreshModels = (context) => {
+		const afterLogin = refreshAfterLogin && context.allowNetwork !== false;
+		if (afterLogin) refreshAfterLogin = false;
+		return refresh(isFresh(context.stored) && !context.force && !afterLogin ? { ...context, allowNetwork: false } : context);
+	};
 
 	pi.registerProvider(provider);
 }

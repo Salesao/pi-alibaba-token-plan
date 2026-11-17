@@ -92,12 +92,33 @@ test("refreshModels restores the stored catalog without touching the network", a
 	assert.equal(typeof context.publications[0].update, "function");
 });
 
-test("a fresh snapshot is not refetched", async () => {
+test("a fresh snapshot is not refetched on a restore-only pass", async () => {
 	const { provider, fetchImpl } = setup();
 
-	await provider.refreshModels(fakeContext({ stored: { models: [storedModel], checkedAt: Date.now() } }));
+	await provider.refreshModels(
+		fakeContext({ allowNetwork: false, stored: { models: [storedModel], checkedAt: Date.now() } }),
+	);
 
 	assert.equal(fetchImpl.calls.length, 0);
+});
+
+test("a login refetches a fresh snapshot on the refresh pi runs right after it", async () => {
+	const { provider, fetchImpl } = setup();
+	const interaction = {
+		signal: new AbortController().signal,
+		prompt: async ({ type }) => ({ select: "sg", secret: "sk-test" })[type],
+	};
+	await provider.auth.apiKey.login(interaction);
+
+	await provider.refreshModels(
+		fakeContext({
+			credential: { type: "api_key", key: "sk-test" },
+			stored: { models: [storedModel], checkedAt: Date.now() },
+		}),
+	);
+
+	assert.equal(provider.getModels()[0].id, "qwen4-max-preview");
+	assert.ok(fetchImpl.calls.length >= 2, "login verification and the catalog refresh both hit the network");
 });
 
 test("a stale snapshot is refetched against the credential region and persisted", async () => {
@@ -139,6 +160,45 @@ test("refresh without any key fails with a login hint", async () => {
 	} finally {
 		if (previous !== undefined) process.env.ALIBABA_API_KEY = previous;
 	}
+});
+
+// A login changes the credential, so Pi's own post-login refresh must reach the
+// network even when the stored catalog is still inside the freshness window.
+test("the SDK's post-login refresh bypasses a fresh snapshot", async () => {
+	const fetchImpl = fakeFetch();
+	const pi = fakePi();
+	register(pi, { fetchImpl, agentDir: mkdtempSync(join(tmpdir(), "alp-agent-")) });
+
+	let credential = { type: "api_key", key: "sk-sg", env: { [REGION_ENV]: "sg" } };
+	const models = createModels({
+		credentials: {
+			read: async () => credential,
+			list: async () => [{ providerId: PROVIDER, type: "api_key" }],
+			modify: async (_id, fn) => {
+				credential = await fn(credential);
+				return credential;
+			},
+			delete: async () => {},
+		},
+		modelsStore: {
+			read: async () => ({ models: [storedModel], checkedAt: Date.now() }),
+			write: async () => {},
+			delete: async () => {},
+		},
+		authContext: { env: async () => undefined, fileExists: async () => false },
+	});
+	models.setProvider(pi.providers[0]);
+
+	await models.login(PROVIDER, "api_key", {
+		signal: new AbortController().signal,
+		prompt: async ({ type }) => ({ select: "sg", secret: "sk-test" })[type],
+	});
+	const before = fetchImpl.calls.length;
+	const result = await models.refresh({ allowNetwork: true, providers: [PROVIDER] });
+
+	assert.equal(result.errors.size, 0, [...result.errors.values()].join("; "));
+	assert.ok(fetchImpl.calls.length > before, "the refresh after a login must hit the network");
+	assert.equal(models.getModel(PROVIDER, "qwen4-max-preview").id, "qwen4-max-preview");
 });
 
 // The SDK rebuilds the discovery credential from resolve()'s result, keeping only

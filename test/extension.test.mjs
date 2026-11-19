@@ -58,14 +58,14 @@ function fakeContext(overrides = {}) {
 	};
 }
 
-const setup = (fetchImpl = fakeFetch()) => {
+const setup = async (fetchImpl = fakeFetch()) => {
 	const pi = fakePi();
-	register(pi, { fetchImpl, agentDir: mkdtempSync(join(tmpdir(), "alp-agent-")) });
+	await register(pi, { fetchImpl, agentDir: mkdtempSync(join(tmpdir(), "alp-agent-")) });
 	return { provider: pi.providers[0], pi, fetchImpl };
 };
 
-test("register adds one native provider with login support", () => {
-	const { pi, provider } = setup();
+test("register adds one native provider with login support", async () => {
+	const { pi, provider } = await setup();
 
 	assert.equal(pi.providers.length, 1);
 	assert.equal(provider.id, PROVIDER);
@@ -75,7 +75,7 @@ test("register adds one native provider with login support", () => {
 });
 
 test("refreshModels restores the stored catalog without touching the network", async () => {
-	const { provider, fetchImpl } = setup();
+	const { provider, fetchImpl } = await setup();
 	const context = fakeContext({
 		allowNetwork: false,
 		stored: { models: [storedModel], checkedAt: Date.now() },
@@ -93,7 +93,7 @@ test("refreshModels restores the stored catalog without touching the network", a
 });
 
 test("a fresh snapshot is not refetched on a restore-only pass", async () => {
-	const { provider, fetchImpl } = setup();
+	const { provider, fetchImpl } = await setup();
 
 	await provider.refreshModels(
 		fakeContext({ allowNetwork: false, stored: { models: [storedModel], checkedAt: Date.now() } }),
@@ -103,7 +103,7 @@ test("a fresh snapshot is not refetched on a restore-only pass", async () => {
 });
 
 test("a login refetches a fresh snapshot on the refresh pi runs right after it", async () => {
-	const { provider, fetchImpl } = setup();
+	const { provider, fetchImpl } = await setup();
 	const interaction = {
 		signal: new AbortController().signal,
 		prompt: async ({ type }) => ({ select: "sg", secret: "sk-test" })[type],
@@ -122,7 +122,7 @@ test("a login refetches a fresh snapshot on the refresh pi runs right after it",
 });
 
 test("a stale snapshot is refetched against the credential region and persisted", async () => {
-	const { provider, fetchImpl } = setup();
+	const { provider, fetchImpl } = await setup();
 	const context = fakeContext({
 		stored: { models: [storedModel], checkedAt: Date.now() - REFRESH_INTERVAL_MS - 1 },
 		credential: { type: "api_key", key: "k", env: { [REGION_ENV]: "cn" } },
@@ -138,7 +138,7 @@ test("a stale snapshot is refetched against the credential region and persisted"
 });
 
 test("force refetches even a fresh snapshot", async () => {
-	const { provider, fetchImpl } = setup();
+	const { provider, fetchImpl } = await setup();
 
 	await provider.refreshModels(
 		fakeContext({
@@ -152,7 +152,7 @@ test("force refetches even a fresh snapshot", async () => {
 });
 
 test("refresh without any key fails with a login hint", async () => {
-	const { provider } = setup();
+	const { provider } = await setup();
 	const previous = process.env.ALIBABA_API_KEY;
 	delete process.env.ALIBABA_API_KEY;
 	try {
@@ -167,7 +167,7 @@ test("refresh without any key fails with a login hint", async () => {
 test("the SDK's post-login refresh bypasses a fresh snapshot", async () => {
 	const fetchImpl = fakeFetch();
 	const pi = fakePi();
-	register(pi, { fetchImpl, agentDir: mkdtempSync(join(tmpdir(), "alp-agent-")) });
+	await register(pi, { fetchImpl, agentDir: mkdtempSync(join(tmpdir(), "alp-agent-")) });
 
 	let credential = { type: "api_key", key: "sk-sg", env: { [REGION_ENV]: "sg" } };
 	const models = createModels({
@@ -207,7 +207,7 @@ test("the SDK's post-login refresh bypasses a fresh snapshot", async () => {
 test("a stored Beijing credential refreshes against Beijing through the real SDK", async () => {
 	const fetchImpl = fakeFetch();
 	const pi = fakePi();
-	register(pi, { fetchImpl, agentDir: mkdtempSync(join(tmpdir(), "alp-agent-")) });
+	await register(pi, { fetchImpl, agentDir: mkdtempSync(join(tmpdir(), "alp-agent-")) });
 
 	const stored = { type: "api_key", key: "sk-cn", env: { [REGION_ENV]: "cn" } };
 	const models = createModels({

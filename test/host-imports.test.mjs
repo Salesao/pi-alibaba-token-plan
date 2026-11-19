@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { builtinModules } from "node:module";
 import { test } from "node:test";
 
@@ -21,17 +21,28 @@ const HOST_SPECIFIERS = new Set([
 	"@earendil-works/pi-coding-agent",
 ]);
 
-const source = readFileSync(new URL("../extensions/index.js", import.meta.url), "utf8");
-const specifiers = [...source.matchAll(/from\s+"([^"]+)"/g)].map((match) => match[1]);
+const modules = readdirSync(new URL("../extensions", import.meta.url))
+	.filter((name) => name.endsWith(".js"))
+	.map((name) => ({ name, source: readFileSync(new URL(`../extensions/${name}`, import.meta.url), "utf8") }));
 
-test("the extension entry imports only host specifiers, relative files or node builtins", () => {
-	assert.ok(specifiers.length > 0);
-	for (const specifier of specifiers) {
-		const allowed =
-			HOST_SPECIFIERS.has(specifier) ||
-			specifier.startsWith(".") ||
-			specifier.startsWith("node:") ||
-			builtinModules.includes(specifier);
-		assert.ok(allowed, `unresolvable after a git install: ${specifier}`);
+test("every extension module imports only host specifiers, relative files or node builtins", () => {
+	assert.ok(modules.length > 0);
+	for (const { name, source } of modules) {
+		const specifiers = [...source.matchAll(/from\s+"([^"]+)"/g)].map((match) => match[1]);
+		assert.ok(specifiers.length > 0, name);
+		for (const specifier of specifiers) {
+			const allowed =
+				HOST_SPECIFIERS.has(specifier) ||
+				specifier.startsWith(".") ||
+				specifier.startsWith("node:") ||
+				builtinModules.includes(specifier);
+			assert.ok(allowed, `${name}: unresolvable after a git install: ${specifier}`);
+		}
 	}
+});
+
+test("the OMP module never imports host-local Pi specifiers", () => {
+	const omp = modules.find((entry) => entry.name === "host-omp.js");
+	assert.ok(omp);
+	assert.doesNotMatch(omp.source, /@earendil-works\//);
 });

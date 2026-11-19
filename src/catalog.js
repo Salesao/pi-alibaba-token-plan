@@ -150,3 +150,42 @@ export function buildModels({ liveIds, catalogModels, previousModels, baseUrl, p
 	}
 	return models.sort((left, right) => left.id.localeCompare(right.id));
 }
+const OMP_THINKING_EFFORTS = ["minimal", "low", "medium", "high", "xhigh", "max"];
+
+/**
+ * Pi stores a level→wire-value map (`thinkingLevelMap`). OMP's ProviderConfig
+ * takes a capability object instead: the supported efforts plus the same wire
+ * remap. Levels mapped to null are unsupported and dropped.
+ */
+export function toOmpThinking(thinkingLevelMap) {
+	if (!thinkingLevelMap) return undefined;
+	const efforts = [];
+	const effortMap = {};
+	for (const level of OMP_THINKING_EFFORTS) {
+		const wire = thinkingLevelMap[level];
+		if (typeof wire === "string") {
+			efforts.push(level);
+			effortMap[level] = wire;
+		}
+	}
+	return efforts.length > 0 ? { mode: "effort", efforts, effortMap } : undefined;
+}
+
+/** Shape a catalog row for OMP's registerProvider(name, config). */
+export function toOmpModelConfig(model) {
+	const config = {
+		id: model.id,
+		name: model.name,
+		api: model.api,
+		reasoning: model.reasoning,
+		input: model.input,
+		cost: model.cost,
+		contextWindow: model.contextWindow,
+		maxTokens: model.maxTokens,
+		compat: model.compat,
+		baseUrl: model.baseUrl,
+	};
+	const thinking = toOmpThinking(model.thinkingLevelMap);
+	if (thinking) config.thinking = thinking;
+	return config;
+}

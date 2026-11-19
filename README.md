@@ -1,18 +1,32 @@
 # pi-alibaba-token-plan
 
-Alibaba Model Studio **Token Plan** as a Pi provider: sign in with `/login`, pick the region your
-plan was bought in, and get the plan's own model list with correct context limits and thinking.
+Alibaba Model Studio **Token Plan** as a Pi or OMP (`omp`) provider: sign in with `/login`, pick the
+region your plan was bought in, and get the plan's own model list with correct context limits and
+thinking.
 
 Works with both Token Plan endpoints — Singapore (International) and China (Beijing). Keys are
 region-specific, so the region is stored with the key.
 
 ## Install
 
+Pi:
+
 ```bash
 pi install npm:pi-alibaba-token-plan
 # or straight from the repository
 pi install git:github.com/Salesao/pi-alibaba-token-plan
 ```
+
+OMP:
+
+```bash
+omp plugin install pi-alibaba-token-plan
+# or straight from the repository
+omp plugin install git:github.com/Salesao/pi-alibaba-token-plan
+```
+
+The same package declares one extension entry; it detects the host and uses the host's provider API
+(`createProvider` on Pi, `registerProvider(id, config)` on OMP).
 
 ## Where the key comes from
 
@@ -37,7 +51,8 @@ The same console lists the models your plan serves. A pay-as-you-go DashScope ke
 2. Paste the Token Plan API key (a dedicated key, not a pay-as-you-go DashScope key).
 
 The key is verified against the selected region before it is saved. A key from the other region is
-rejected with a clear message and nothing is stored. Credentials live in `~/.pi/agent/auth.json`.
+rejected with a clear message and nothing is stored. Credentials live in `~/.pi/agent/auth.json`
+on Pi and `~/.omp/agent/auth.json` on OMP.
 
 Prefer environment variables? Both are read when no credential is stored:
 
@@ -50,6 +65,7 @@ export ALIBABA_TOKEN_PLAN_REGION=sg   # sg (default) or cn
 
 ```bash
 pi --model alibaba-openai/qwen4-max-preview:xhigh
+omp --model alibaba-openai/qwen4-max-preview:xhigh
 ```
 
 Thinking levels for `qwen4-max` are `low`, `high` and `xhigh` — only the values Alibaba documents,
@@ -66,8 +82,13 @@ answer; its levels are `low`, `medium` and `xhigh` — ask for `:xhigh`, not `:h
   package for models those catalogs lag on.
 - Pi stores the resulting catalog in `~/.pi/agent/models-store.json`, which is what offline starts and
   `pi -p` use. The list is refreshed on interactive startup, at most once every 15 minutes.
+- OMP keeps the catalog in its model cache (24-hour TTL). Run `omp models refresh` to force a fetch;
+  on OMP the region is not available to discovery, so a China key is detected by probing the other
+  endpoint once (`ALIBABA_TOKEN_PLAN_REGION=cn` skips the probe).
 - A login always refetches it immediately, inside that window or not: `/login` (interactive) and
   `pi auth login` both run a network refresh right after the credential is saved.
+- OMP's `/login alibaba-openai` asks for the region as a numbered choice (OMP has no select prompt),
+  then verifies the key against that region exactly like Pi.
 - **First run:** the login itself fetches the catalog. Until that fetch completes there is nothing
   stored, so `pi --list-models` and `pi -p` show no models for this provider. (`pi update --models`
   only refreshes Pi's built-in catalogs, not provider extensions.)
@@ -83,8 +104,9 @@ npm install   # installs the host SDK peer dependencies for the tests
 npm test
 ```
 
-Try it without installing: `pi -ne -e ./pi-alibaba-token-plan --list-models alibaba`
+Try it without installing: `pi -ne -e ./extensions/index.js --list-models alibaba`
 (`-ne` disables extension discovery, so a hand-installed copy cannot clash over the provider id).
+On OMP: `omp --no-session -e ./extensions/index.js --model alibaba-openai/qwen4-max-preview "hi"`.
 
 ## License
 

@@ -1,8 +1,8 @@
 {
   "name": "pi-alibaba-token-plan",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
-  "description": "Alibaba Model Studio Token Plan provider for Pi: /login with region selection and a live model catalog",
+  "description": "Alibaba Model Studio Token Plan provider for Pi and OMP: /login with region selection and a live model catalog",
   "license": "MIT",
   "author": "Salesao",
   "repository": {
@@ -42,6 +42,7 @@
     "provider",
     "alibaba",
     "qwen",
-    "token-plan"
+    "token-plan",
+    "omp-plugin"
   ]
 }
